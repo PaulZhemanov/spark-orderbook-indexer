@@ -37,6 +37,8 @@ OrderBookContract.OrderChangeEvent.loader(({ event, context }) => {
 OrderBookContract.OrderChangeEvent.handler(({ event, context }) => {
   const eventOrder = event.data.order;
   const timestamp = tai64ToDate(event.data.timestamp);
+  context.log.debug({"data": event.data} as any)
+
   const order: spotOrderEntity | null = eventOrder
     ? {
       id: eventOrder.id,
@@ -59,18 +61,21 @@ OrderBookContract.OrderChangeEvent.handler(({ event, context }) => {
     order_id: event.data.order_id,
     new_base_size: order ? order.base_size : "0",
     timestamp,
-    identifier: event.data.identifier as any as string,
+    identifier: event.data.identifier.case,
     tx_id: event.transactionId,
   });
-
+  context.log.debug(`order == null: ${order == null}`)
   if (order) {
+    context.log.debug(`✅ order is exists ${order.id}`)
     const maybeExistingOrder = context.SpotOrder.get(order.id);
     if (maybeExistingOrder) {
+    context.log.debug(`✅ maybeExistingOrder === true ${order.id}`)
       context.SpotOrder.set({
         ...maybeExistingOrder,
         base_size: order.base_size,
       });
     } else {
+    context.log.debug(`✅ maybeExistingOrder === false ${order.id}`)
       context.SpotOrder.set(order);
     }
   }
